@@ -7,6 +7,7 @@ export default function Inspector({
   paletteError,
   onExtractPaletteFromImage,
   onUpdateItem,
+  onRenameBoard,
 }) {
   const canExtract = selectedItem?.type === "image";
 
@@ -200,6 +201,18 @@ export default function Inspector({
               : "No selection"}
           </pre>
         </details>
+
+        {/* Board */}
+        <div className="mt-4">
+          <div className={ui.sectionTitle}>Board</div>
+
+          <input
+            value={boardTitle || ""}
+            onChange={(e) => onRenameBoard?.(e.target.value)}
+            className={cx(ui.input, "mt-3")}
+            placeholder="Untitled"
+          />
+        </div>
       </div>
     </aside>
   );

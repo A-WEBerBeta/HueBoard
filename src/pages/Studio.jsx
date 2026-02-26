@@ -1,11 +1,13 @@
 import { PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { useCallback, useMemo, useState } from "react";
 
+import BoardSwitcher from "../studio/components/BoardSwitcher";
 import Canvas from "../studio/components/Canvas";
 import Inspector from "../studio/components/Inspector";
 import Sidebar from "../studio/components/Sidebar";
 
 import { useBoard } from "../studio/hooks/useBoard";
+import { useBoards } from "../studio/hooks/useBoards";
 import { useGoogleFonts } from "../studio/hooks/useGoogleFonts";
 import { useUnsplashSearch } from "../studio/hooks/useUnsplashSearch";
 
@@ -13,9 +15,15 @@ import { SCENES, pickScene, randomScene } from "../studio/scenes/scenes";
 import { ui } from "../studio/ui/ui";
 
 export default function Studio() {
+  const boards = useBoards();
+  const board = boards.activeBoard;
+
+  // Editor branché sur le board actif
+  const editor = useBoard(board, (patchOrFn) =>
+    boards.updateBoard(boards.activeId, patchOrFn),
+  );
+
   const {
-    board,
-    setBoard,
     selectedId,
     setSelectedId,
     selectedItem,
@@ -39,7 +47,7 @@ export default function Studio() {
     duplicateSelected,
     bringSelectedToFront,
     sendSelectedToBack,
-  } = useBoard();
+  } = editor;
 
   const [panel, setPanel] = useState("tools");
 
@@ -58,17 +66,16 @@ export default function Studio() {
     setSceneId(randomScene().id);
   }, []);
 
-  const handleTitleChange = useCallback(
-    (e) => {
-      const title = e.target.value;
-      setBoard((prev) => ({ ...prev, title }));
-    },
-    [setBoard],
-  );
-
   const handleExtractFromSelected = useCallback(() => {
     if (selectedItem) extractPaletteFromImage(selectedItem);
   }, [selectedItem, extractPaletteFromImage]);
+
+  const clearSelection = useCallback(
+    () => setSelectedId(null),
+    [setSelectedId],
+  );
+
+  if (!board) return null;
 
   return (
     <div className={ui.appBg}>
@@ -89,32 +96,21 @@ export default function Studio() {
             </div>
           </div>
 
-          {/* Center pill */}
-          <div className="hidden md:flex w-[520px] max-w-[44vw] items-center gap-3 rounded-full bg-white/10 px-4 py-2 ring-1 ring-white/12 shadow-[0_18px_40px_rgba(0,0,0,.45)]">
-            <span className="text-white/55">🔎</span>
+          {/* Center */}
+          <div className="hidden md:flex items-center gap-3">
+            <BoardSwitcher boardsApi={boards} onBeforeSwitch={clearSelection} />
 
-            <input
-              value={board.title ?? ""}
-              onChange={handleTitleChange}
-              className="w-full bg-transparent text-sm text-white placeholder:text-white/45 outline-none"
-              placeholder="Untitled Project"
-            />
-
-            <button
-              type="button"
-              className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70 ring-1 ring-white/12 hover:bg-white/14"
-              title="Save (local)"
-              onClick={() => {
-                // si on ajoute l'autosave dans useBoard, on peut même virer ce bouton
-                try {
-                  localStorage.setItem("hueboard", JSON.stringify(board));
-                } catch {
-                  //
+            <div className="hidden lg:flex w-[520px] max-w-[44vw] items-center gap-3 rounded-full bg-white/10 px-4 py-2 ring-1 ring-white/12 shadow-[0_18px_40px_rgba(0,0,0,.45)]">
+              <span className="text-white/55">🔎</span>
+              <input
+                value={board.title ?? ""}
+                onChange={(e) =>
+                  boards.updateBoard(boards.activeId, { title: e.target.value })
                 }
-              }}
-            >
-              Save
-            </button>
+                className="w-full bg-transparent text-sm text-white placeholder:text-white/45 outline-none"
+                placeholder="Untitled Project"
+              />
+            </div>
           </div>
 
           {/* Actions */}
@@ -184,14 +180,21 @@ export default function Studio() {
           onRandomScene={handleRandomScene}
         />
 
-        <Inspector
-          selectedItem={selectedItem}
-          boardTitle={board.title}
-          paletteStatus={paletteStatus}
-          paletteError={paletteError}
-          onExtractPaletteFromImage={extractPaletteFromImage}
-          onUpdateItem={updateItem}
-        />
+        {/* Right column: Inspector + Board manager UNDER it (not inside inspector) */}
+        <div className="relative z-30 min-w-0 flex flex-col gap-5">
+          <Inspector
+            selectedItem={selectedItem}
+            boardTitle={board.title}
+            paletteStatus={paletteStatus}
+            paletteError={paletteError}
+            onExtractPaletteFromImage={extractPaletteFromImage}
+            onUpdateItem={updateItem}
+          />
+
+          <div className="w-[320px]">
+            <BoardSwitcher boardsApi={boards} onBeforeSwitch={clearSelection} />
+          </div>
+        </div>
       </main>
     </div>
   );

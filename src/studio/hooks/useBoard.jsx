@@ -1,43 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { ensureFontLoaded } from "../utils/fonts";
 
-const initialBoard = {
-  title: "Untitled",
-  items: [
-    {
-      id: "shape-1",
-      type: "shape",
-      kind: "circle",
-      x: 50,
-      y: 250,
-      w: 380,
-      h: 380,
-      z: 0,
-      rotation: 0,
-      opacity: 0.35,
-      fill: {
-        kind: "gradient",
-        from: "#22c55e",
-        via: "#38bdf8",
-        to: "#a855f7",
-      },
-    },
-    {
-      id: "note-1",
-      type: "note",
-      x: 70,
-      y: 70,
-      w: 320,
-      h: 190,
-      z: 2,
-      title: "Welcome to HueBoard",
-      body: "Next: search images + extract palette from an image (coherent).",
-    },
-  ],
-};
-
-const Z_BASE = 10;
-
 function uid() {
   return crypto.randomUUID
     ? crypto.randomUUID()
@@ -62,79 +25,72 @@ function randomHex() {
   return n.toString(16).padStart(6, "0");
 }
 
-export function useBoard() {
-  const [board, setBoard] = useState(initialBoard);
+// ✅ board vient de useBoards, updateBoard = (fn(board)=>nextBoard) ou patch
+export function useBoard(board, updateBoard) {
   const [selectedId, setSelectedId] = useState(null);
 
-  // palette UI feedback
   const [paletteStatus, setPaletteStatus] = useState("idle");
   const [paletteError, setPaletteError] = useState("");
 
-  // Drag smoothness: track delta progression
   const lastDeltaRef = useRef({ x: 0, y: 0 });
 
-  const selectedItem = useMemo(() => {
-    return board.items.find((it) => it.id === selectedId) ?? null;
-  }, [board.items, selectedId]);
+  const items = board?.items ?? [];
 
-  // ---------- internal helpers ----------
+  const selectedItem = useMemo(() => {
+    return items.find((it) => it.id === selectedId) ?? null;
+  }, [items, selectedId]);
+
+  // --- core patch ---
+  function patchItems(fn) {
+    updateBoard((prev) => ({
+      ...prev,
+      items: fn(prev.items || []),
+    }));
+  }
+
+  function updateItem(id, patch) {
+    patchItems((arr) =>
+      arr.map((it) => (it.id === id ? { ...it, ...patch } : it)),
+    );
+  }
+
   function bringToFront(id) {
-    setBoard((prev) => {
-      const maxZ = prev.items.reduce(
-        (m, it) => Math.max(m, it.z ?? Z_BASE),
-        Z_BASE,
-      );
-      return {
-        ...prev,
-        items: prev.items.map((it) =>
-          it.id === id ? { ...it, z: maxZ + 1 } : it,
-        ),
-      };
+    patchItems((arr) => {
+      const maxZ = arr.reduce((m, it) => Math.max(m, it.z ?? 0), 0);
+      return arr.map((it) => (it.id === id ? { ...it, z: maxZ + 1 } : it));
     });
   }
 
   function sendToBack(id) {
-    setBoard((prev) => {
-      const minZ = prev.items.reduce(
-        (m, it) => Math.min(m, it.z ?? Z_BASE),
-        Infinity,
-      );
-      const nextZ = Math.max(Z_BASE, (minZ === Infinity ? Z_BASE : minZ) - 1);
-
-      return {
-        ...prev,
-        items: prev.items.map((it) =>
-          it.id === id ? { ...it, z: nextZ } : it,
-        ),
-      };
+    patchItems((arr) => {
+      const minZ = arr.reduce((m, it) => Math.min(m, it.z ?? 0), 0);
+      return arr.map((it) => (it.id === id ? { ...it, z: minZ - 1 } : it));
     });
   }
 
   function moveItemBy(id, dx, dy) {
-    setBoard((prev) => ({
-      ...prev,
-      items: prev.items.map((it) =>
-        it.id === id
-          ? { ...it, x: (Number(it.x) || 0) + dx, y: (Number(it.y) || 0) + dy }
-          : it,
+    patchItems((arr) =>
+      arr.map((it) =>
+        it.id === id ? { ...it, x: it.x + dx, y: it.y + dy } : it,
       ),
-    }));
+    );
   }
 
-  // ---------- public actions ----------
+  // --- add items ---
   function addNote() {
     const newItem = {
       id: uid(),
       type: "note",
-      x: 90 + Math.random() * 260,
-      y: 90 + Math.random() * 220,
+      x: 120,
+      y: 120,
       w: 320,
       h: 190,
-      z: nextZ(board.items),
+      z: nextZ(items),
+      rotation: 0,
       title: "New note",
-      body: "Type something...",
+      body: "Type something…",
     };
-    setBoard((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+    patchItems((arr) => [...arr, newItem]);
     setSelectedId(newItem.id);
   }
 
@@ -151,38 +107,37 @@ export function useBoard() {
       id: uid(),
       type: "shape",
       kind,
-      x: 40 + Math.random() * 280,
-      y: 80 + Math.random() * 280,
+      x: 120,
+      y: 120,
       w: kind === "stripe" ? 560 : 380,
       h: kind === "stripe" ? 240 : 380,
-      z: nextZ(board.items),
-      rotation: -18 + Math.random() * 36,
-      opacity: 0.25 + Math.random() * 0.2,
+      z: nextZ(items),
+      rotation: 0,
+      opacity: 0.3,
       fill: { kind: "gradient", from: g.from, via: g.via, to: g.to },
     };
 
-    setBoard((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+    patchItems((arr) => [...arr, newItem]);
     setSelectedId(newItem.id);
   }
 
   function addTypography(font) {
     ensureFontLoaded(font.family);
-
     const newItem = {
       id: uid(),
       type: "typography",
-      x: 120 + Math.random() * 240,
-      y: 120 + Math.random() * 220,
+      x: 120,
+      y: 120,
       w: 440,
       h: 230,
-      z: nextZ(board.items),
+      z: nextZ(items),
+      rotation: 0,
       family: font.family,
       category: font.category,
       title: "Design with type",
       body: "Sphinx of black quartz, judge my vow.",
     };
-
-    setBoard((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+    patchItems((arr) => [...arr, newItem]);
     setSelectedId(newItem.id);
   }
 
@@ -195,11 +150,12 @@ export function useBoard() {
     const newItem = {
       id: uid(),
       type: "image",
-      x: 110 + Math.random() * 240,
-      y: 110 + Math.random() * 220,
+      x: 120,
+      y: 120,
       w,
       h,
-      z: nextZ(board.items),
+      z: nextZ(items),
+      rotation: 0,
       url: photo.urls?.regular || photo.urls?.small,
       thumb: photo.urls?.small || photo.urls?.thumb,
       alt: photo.alt_description || photo.description || "Unsplash photo",
@@ -209,12 +165,11 @@ export function useBoard() {
       source: "Unsplash",
     };
 
-    setBoard((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+    patchItems((arr) => [...arr, newItem]);
     setSelectedId(newItem.id);
   }
 
   async function generatePalette() {
-    // modes plus "design-friendly"
     const modes = ["analogic", "monochrome", "monochrome-dark", "complement"];
     const mode = pick(modes);
     const seed = randomHex();
@@ -235,16 +190,17 @@ export function useBoard() {
       const newItem = {
         id: uid(),
         type: "palette",
-        x: 120 + Math.random() * 240,
-        y: 120 + Math.random() * 220,
+        x: 120,
+        y: 120,
         w: 520,
-        h: 200,
-        z: nextZ(board.items),
+        h: 190,
+        z: nextZ(items),
+        rotation: 0,
         name: `${mode} • #${seed.toUpperCase()}`,
         colors,
       };
 
-      setBoard((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+      patchItems((arr) => [...arr, newItem]);
       setSelectedId(newItem.id);
       setPaletteStatus("success");
     } catch (e) {
@@ -279,13 +235,14 @@ export function useBoard() {
         x: imgItem.x + 40,
         y: imgItem.y + imgItem.h + 20,
         w: 520,
-        h: 200,
-        z: nextZ(board.items),
+        h: 190,
+        z: nextZ(items),
+        rotation: 0,
         name: `From image • ${imgItem.source || "photo"}`,
         colors,
       };
 
-      setBoard((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+      patchItems((arr) => [...arr, newItem]);
       setSelectedId(newItem.id);
       setPaletteStatus("success");
     } catch (e) {
@@ -297,14 +254,7 @@ export function useBoard() {
     }
   }
 
-  function updateItem(id, patch) {
-    setBoard((prev) => ({
-      ...prev,
-      items: prev.items.map((it) => (it.id === id ? { ...it, ...patch } : it)),
-    }));
-  }
-
-  // ---------- drag handlers for Canvas ----------
+  // --- drag ---
   function handleDragStart(evt) {
     const id = String(evt.active.id);
     setSelectedId(id);
@@ -316,7 +266,7 @@ export function useBoard() {
     const id = String(evt.active.id);
     const dx = evt.delta.x - lastDeltaRef.current.x;
     const dy = evt.delta.y - lastDeltaRef.current.y;
-    if (dx === 0 && dy === 0) return;
+    if (!dx && !dy) return;
     moveItemBy(id, dx, dy);
     lastDeltaRef.current = { x: evt.delta.x, y: evt.delta.y };
   }
@@ -325,36 +275,28 @@ export function useBoard() {
     lastDeltaRef.current = { x: 0, y: 0 };
   }
 
-  // --------- Actions -----------
+  // --- actions ---
   function deleteSelected() {
     if (!selectedId) return;
-    setBoard((prev) => ({
-      ...prev,
-      items: prev.items.filter((it) => it.id !== selectedId),
-    }));
+    patchItems((arr) => arr.filter((it) => it.id !== selectedId));
     setSelectedId(null);
   }
 
   function duplicateSelected() {
     if (!selectedId) return;
+    const base = items.find((it) => it.id === selectedId);
+    if (!base) return;
 
-    setBoard((prev) => {
-      const base = prev.items.find((it) => it.id === selectedId);
-      if (!base) return prev;
+    const copy = {
+      ...base,
+      id: uid(),
+      x: base.x + 24,
+      y: base.y + 24,
+      z: nextZ(items),
+    };
 
-      const copy = {
-        ...base,
-        id: uid(),
-        x: base.x + 24,
-        y: base.y + 24,
-        z: nextZ(prev.items),
-      };
-
-      // Important : on met aussi la sélection à jour ici
-      setSelectedId(copy.id);
-
-      return { ...prev, items: [...prev.items, copy] };
-    });
+    patchItems((arr) => [...arr, copy]);
+    setSelectedId(copy.id);
   }
 
   function bringSelectedToFront() {
@@ -368,9 +310,6 @@ export function useBoard() {
   }
 
   return {
-    board,
-    setBoard,
-
     selectedId,
     setSelectedId,
     selectedItem,
@@ -384,6 +323,7 @@ export function useBoard() {
     addImage,
     generatePalette,
     extractPaletteFromImage,
+
     updateItem,
 
     handleDragStart,

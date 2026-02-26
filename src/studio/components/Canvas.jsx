@@ -140,8 +140,8 @@ export default function Canvas({
   const hasSelection = Boolean(selectedId);
 
   const sortedItems = useMemo(() => {
-    return board.items.slice().sort((a, b) => a.z - b.z);
-  }, [board.items]);
+    return (board?.items ?? []).slice().sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+  }, [board?.items]);
 
   const handleBackgroundPointerDown = useCallback(
     (e) => {
@@ -174,7 +174,7 @@ export default function Canvas({
           onDragEnd={onDragEnd}
         >
           <div
-            className="relative z-10 h-[70dvh] w-full"
+            className="relative z-10 h-[calc(100dvh-140px)] w-full"
             onPointerDown={handleBackgroundPointerDown}
           >
             {sortedItems.map((item) => (
