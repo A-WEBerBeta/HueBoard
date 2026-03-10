@@ -47,7 +47,6 @@ export default function Sidebar({
 
   return (
     <aside className="relative z-30 min-w-0">
-      {/* largeur fixée pour matcher le visuel */}
       <div className={cx(ui.panel, "p-4 w-[320px] max-w-[320px]")}>
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
@@ -57,18 +56,9 @@ export default function Sidebar({
               Tools • Type • Images
             </div>
           </div>
-
-          <button
-            onClick={onRandomScene}
-            className={cx(ui.btn, ui.btnSoft, "p-2")}
-            type="button"
-            title="Random scene"
-          >
-            <Shuffle size={16} />
-          </button>
         </div>
 
-        {/* Tabs (comme le visuel) */}
+        {/* Tabs */}
         <div className={cx(ui.tabs, "mt-4")}>
           <button
             type="button"
@@ -79,6 +69,7 @@ export default function Sidebar({
               <Wrench size={14} /> Tools
             </span>
           </button>
+
           <button
             type="button"
             className={safePanel === "typography" ? ui.tabActive : ui.tab}
@@ -88,6 +79,7 @@ export default function Sidebar({
               <Type size={14} /> Type
             </span>
           </button>
+
           <button
             type="button"
             className={safePanel === "images" ? ui.tabActive : ui.tab}
@@ -113,12 +105,14 @@ export default function Sidebar({
                   onClick={onGeneratePalette}
                   accent
                 />
+
                 <ActionRow
                   icon={<Shapes size={18} />}
                   label="Add shape"
                   hint="Circle / triangle / stripe"
                   onClick={onAddShape}
                 />
+
                 <ActionRow
                   icon={<StickyNote size={18} />}
                   label="Add note"
@@ -131,9 +125,18 @@ export default function Sidebar({
 
               <div className="flex items-center justify-between">
                 <SectionTitle>SCENES</SectionTitle>
-                <span className="text-xs text-white/45">
-                  {Array.isArray(scenes) ? scenes.length : 0}
-                </span>
+
+                <button
+                  onClick={onRandomScene}
+                  className={cx(ui.btn, ui.btnSoft, "px-3 py-1.5")}
+                  type="button"
+                  title="Random scene"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Shuffle size={14} />
+                    Random
+                  </span>
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -146,10 +149,6 @@ export default function Sidebar({
                   />
                 ))}
               </div>
-
-              <div className="pt-1">
-                <div className="h-3 w-3 rounded-full bg-white/10 ring-1 ring-white/12 shadow-[0_0_40px_rgba(255,45,178,.5)]" />
-              </div>
             </>
           )}
 
@@ -157,6 +156,7 @@ export default function Sidebar({
             <>
               <div className="flex items-center justify-between">
                 <SectionTitle>GOOGLE FONTS</SectionTitle>
+
                 <button
                   className={cx(ui.btn, ui.btnInk, "py-1.5")}
                   onClick={onLoadFonts}
@@ -207,6 +207,7 @@ export default function Sidebar({
                   placeholder='Try: "memphis", "bauhaus", "neon"'
                   className={ui.input}
                 />
+
                 <button
                   className={cx(ui.btn, ui.btnInk)}
                   onClick={onSearchUnsplash}
@@ -277,21 +278,21 @@ function ActionRow({ icon, label, hint, onClick, accent }) {
       )}
       type="button"
     >
-      <div className="h-10 w-10 rounded-xl bg-white/10 ring-1 ring-white/12 flex items-center justify-center text-white">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/12">
         {icon}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold text-white truncate">{label}</div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold text-white">{label}</div>
         <div className="text-xs text-white/55">{hint}</div>
       </div>
 
       <div
         className={cx(
-          "h-8 w-8 rounded-full ring-1 flex items-center justify-center",
+          "flex h-8 w-8 items-center justify-center rounded-full ring-1",
           accent
             ? "ring-white/20 bg-[conic-gradient(from_210deg,#ff2db2,#00d9ff,#b7ff00,#ffcc00,#ff2db2)]"
-            : "ring-white/12 bg-white/10",
+            : "bg-white/10 ring-white/12",
         )}
         aria-hidden="true"
       >
@@ -302,47 +303,75 @@ function ActionRow({ icon, label, hint, onClick, accent }) {
 }
 
 function SceneThumb({ scene, active, onClick }) {
-  const p = scene?.palette ?? {};
-  const a = p.pink ?? p.a ?? "#ff2db2";
-  const b = p.cyan ?? p.b ?? "#00d9ff";
-  const d = p.yellow ?? p.d ?? "#ffcc00";
-  const bg = p.bg ?? "#070816";
+  const isDots = scene.type === "dots";
+  const isGrid = scene.type === "grid";
 
   return (
     <button
       onClick={onClick}
       className={cx(
-        "rounded-2xl p-2 text-left ring-1 transition",
+        "overflow-hidden rounded-2xl text-left ring-1 transition",
         active
-          ? "ring-white/30 bg-white/12"
-          : "ring-white/12 bg-white/6 hover:bg-white/10",
+          ? "bg-white/12 ring-white/30"
+          : "bg-white/6 ring-white/12 hover:bg-white/10 hover:ring-white/20",
       )}
       type="button"
+      title={scene.name}
     >
-      <div
-        className="h-14 w-full rounded-xl ring-1 ring-white/12"
-        style={{
-          background: `
-            radial-gradient(circle at 25% 35%, ${a}, transparent 60%),
-            radial-gradient(circle at 70% 45%, ${b}, transparent 62%),
-            radial-gradient(circle at 45% 85%, ${d}, transparent 65%),
-            linear-gradient(135deg, ${bg}, ${bg})
-          `,
-        }}
-      />
-      <div className="mt-2 text-xs font-semibold text-white/85 truncate">
-        {scene.name}
+      <div className="relative h-20 w-full overflow-hidden rounded-xl">
+        {scene.image && (
+          <img
+            src={scene.image}
+            alt={scene.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        )}
+
+        {isDots && (
+          <div
+            className="absolute inset-0 bg-[#0c0d12]"
+            style={{
+              backgroundImage:
+                "radial-gradient(rgba(255,255,255,0.25) 1px, transparent 1px)",
+              backgroundSize: "16px 16px",
+            }}
+          />
+        )}
+
+        {isGrid && (
+          <div
+            className="absolute inset-0 bg-[#0c0d12]"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)
+              `,
+              backgroundSize: "18px 18px",
+            }}
+          />
+        )}
+      </div>
+
+      <div className="px-2 py-2">
+        <div className="truncate text-xs font-semibold text-white/85">
+          {scene.name}
+        </div>
       </div>
     </button>
   );
 }
 
 function StatusLine({ status, error }) {
-  if (status === "loading")
+  if (status === "loading") {
     return <div className="mt-2 text-xs text-white/55">Loading…</div>;
-  if (status === "error")
+  }
+
+  if (status === "error") {
     return (
       <div className="mt-2 text-xs text-rose-200">{error || "Error."}</div>
     );
+  }
+
   return null;
 }

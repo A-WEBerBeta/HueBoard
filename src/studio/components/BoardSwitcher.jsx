@@ -40,14 +40,14 @@ export default function BoardSwitcher({ boardsApi, onBeforeSwitch }) {
         "
         title="Boards"
       >
-        <span className="max-w-[220px] truncate">{title}</span>
+        <span className="max-w-55 truncate">{title}</span>
         <ChevronDown size={16} className="text-white/65" />
       </button>
 
       {open && (
         <div
           className="
-            absolute left-0 mt-2 w-[340px] rounded-3xl
+            absolute left-0 mt-2 w-85 rounded-3xl
             bg-black/95 p-2
             backdrop-blur-xl
             shadow-[0_40px_120px_rgba(0,0,0,.85)]

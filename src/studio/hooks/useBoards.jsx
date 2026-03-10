@@ -10,6 +10,7 @@ function makeEmptyBoard() {
   return {
     id: uid(),
     title: "Untitled",
+    sceneId: "scene-1",
     items: [
       {
         id: "note-1",

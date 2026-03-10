@@ -18,7 +18,6 @@ export default function Studio() {
   const boards = useBoards();
   const board = boards.activeBoard;
 
-  // Editor branché sur le board actif
   const editor = useBoard(board, (patchOrFn) =>
     boards.updateBoard(boards.activeId, patchOrFn),
   );
@@ -51,10 +50,6 @@ export default function Studio() {
 
   const [panel, setPanel] = useState("tools");
 
-  // scenes
-  const [sceneId, setSceneId] = useState(() => SCENES?.[0]?.id ?? "default");
-  const scene = useMemo(() => pickScene(sceneId), [sceneId]);
-
   const fonts = useGoogleFonts();
   const unsplash = useUnsplashSearch();
 
@@ -62,18 +57,18 @@ export default function Studio() {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
+  const scene = useMemo(() => {
+    return pickScene(board?.sceneId);
+  }, [board?.sceneId]);
+
   const handleRandomScene = useCallback(() => {
-    setSceneId(randomScene().id);
-  }, []);
+    const s = randomScene();
+    boards.updateBoard(boards.activeId, { sceneId: s.id });
+  }, [boards]);
 
   const handleExtractFromSelected = useCallback(() => {
     if (selectedItem) extractPaletteFromImage(selectedItem);
   }, [selectedItem, extractPaletteFromImage]);
-
-  const clearSelection = useCallback(
-    () => setSelectedId(null),
-    [setSelectedId],
-  );
 
   if (!board) return null;
 
@@ -86,10 +81,12 @@ export default function Studio() {
             <div className={ui.brandMark}>
               <div className={ui.brandDot} />
             </div>
+
             <div className="leading-tight">
               <div className="font-semibold tracking-tight text-white">
                 HueBoard
               </div>
+
               <div className="text-xs text-white/55">
                 Palette • Typography • Moodboard
               </div>
@@ -98,14 +95,18 @@ export default function Studio() {
 
           {/* Center */}
           <div className="hidden md:flex items-center gap-3">
-            <BoardSwitcher boardsApi={boards} onBeforeSwitch={clearSelection} />
+            <BoardSwitcher
+              boardsApi={boards}
+              onBeforeSwitch={() => setSelectedId(null)}
+            />
 
             <div className="hidden lg:flex w-[520px] max-w-[44vw] items-center gap-3 rounded-full bg-white/10 px-4 py-2 ring-1 ring-white/12 shadow-[0_18px_40px_rgba(0,0,0,.45)]">
-              <span className="text-white/55">🔎</span>
               <input
                 value={board.title ?? ""}
                 onChange={(e) =>
-                  boards.updateBoard(boards.activeId, { title: e.target.value })
+                  boards.updateBoard(boards.activeId, {
+                    title: e.target.value,
+                  })
                 }
                 className="w-full bg-transparent text-sm text-white placeholder:text-white/45 outline-none"
                 placeholder="Untitled Project"
@@ -122,6 +123,7 @@ export default function Studio() {
             >
               Export
             </button>
+
             <button
               type="button"
               className={ui.btnShare + " rounded-full px-5 py-2 font-semibold"}
@@ -138,8 +140,10 @@ export default function Studio() {
           panel={panel}
           setPanel={setPanel}
           scenes={SCENES}
-          sceneId={sceneId}
-          setSceneId={setSceneId}
+          sceneId={board.sceneId}
+          setSceneId={(id) =>
+            boards.updateBoard(boards.activeId, { sceneId: id })
+          }
           onRandomScene={handleRandomScene}
           onGeneratePalette={generatePalette}
           onAddShape={addShape}
@@ -180,21 +184,14 @@ export default function Studio() {
           onRandomScene={handleRandomScene}
         />
 
-        {/* Right column: Inspector + Board manager UNDER it (not inside inspector) */}
-        <div className="relative z-30 min-w-0 flex flex-col gap-5">
-          <Inspector
-            selectedItem={selectedItem}
-            boardTitle={board.title}
-            paletteStatus={paletteStatus}
-            paletteError={paletteError}
-            onExtractPaletteFromImage={extractPaletteFromImage}
-            onUpdateItem={updateItem}
-          />
-
-          <div className="w-[320px]">
-            <BoardSwitcher boardsApi={boards} onBeforeSwitch={clearSelection} />
-          </div>
-        </div>
+        <Inspector
+          selectedItem={selectedItem}
+          boardTitle={board.title}
+          paletteStatus={paletteStatus}
+          paletteError={paletteError}
+          onExtractPaletteFromImage={extractPaletteFromImage}
+          onUpdateItem={updateItem}
+        />
       </main>
     </div>
   );

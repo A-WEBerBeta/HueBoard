@@ -53,7 +53,7 @@ export default function Inspector({
                   onChange={(e) =>
                     onUpdateItem?.(selectedItem.id, { body: e.target.value })
                   }
-                  className={cx(ui.input, "min-h-[120px] resize-none")}
+                  className={cx(ui.input, "min-h-30 resize-none")}
                   placeholder="Write…"
                 />
               </div>
@@ -82,7 +82,7 @@ export default function Inspector({
                   onChange={(e) =>
                     onUpdateItem?.(selectedItem.id, { body: e.target.value })
                   }
-                  className={cx(ui.input, "min-h-[120px] resize-none")}
+                  className={cx(ui.input, "min-h-30 resize-none")}
                   placeholder="Sample text…"
                 />
               </div>
