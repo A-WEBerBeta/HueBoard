@@ -1,16 +1,70 @@
-# React + Vite
+# HueBoard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+HueBoard is an interactive **visual moodboard builder** designed for designers and creatives.
 
-Currently, two official plugins are available:
+It allows users to compose ideas visually by combining **colors, typography, images, shapes and notes** on a freeform canvas.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The goal of this project is to explore **modern UI interactions similar to tools like Figma or Milanote**, while focusing on creative workflows and design inspiration.
 
-## React Compiler
+This project is currently **in active development**.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Freeform **drag-and-drop canvas**
+- Resize and rotate elements
+- Add **notes, shapes, typography, images and color palettes**
+- Generate palettes via **The Color API**
+- Extract palettes from images using **ColorThief**
+- Search images via **Unsplash**
+- Browse and add **Google Fonts**
+- Multiple boards with **local storage persistence**
+- Custom **scene backgrounds**
+- Export boards as **PNG**
+- Responsive layout
+
+---
+
+## Tech Stack
+
+- React
+- Vite
+- TailwindCSS
+- dnd-kit
+- html-to-image
+- ColorThief
+
+APIs used:
+
+- Google Fonts API
+- Unsplash API
+- The Color API
+
+---
+
+## Running the project
+
+```bash
+git clone https://github.com/yourusername/hueboard.git
+cd hueboard
+npm install
+npm run dev
+```
+
+---
+
+## Roadmap
+
+Planned improvements:
+
+- Undo / Redo history
+- Canvas zoom & pan
+- Improved export quality
+- UI polish and design improvements
+
+---
+
+## License
+
+MIT
