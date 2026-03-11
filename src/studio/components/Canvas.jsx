@@ -1,5 +1,5 @@
 import { DndContext } from "@dnd-kit/core";
-import { useCallback, useMemo } from "react";
+import { forwardRef, useCallback, useMemo } from "react";
 import { cx, ui } from "../ui/ui";
 import BoardItemView from "./BoardItemView";
 import MemphisBackdrop from "./MemphisBackdrop";
@@ -38,8 +38,8 @@ function CanvasActionBar({
     "focus:outline-none focus:ring-2 focus:ring-rose-300/30";
 
   return (
-    <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
-      <div className="flex items-center gap-1 rounded-2xl bg-black/35 px-2 py-2 ring-1 ring-white/10 backdrop-blur-xl shadow-[0_20px_70px_rgba(0,0,0,.55)]">
+    <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2 max-w-[90vw] overflow-x-auto">
+      <div className="flex max-w-[90vw] items-center gap-1 overflow-x-auto rounded-2xl bg-black/35 px-2 py-2 ring-1 ring-white/10 backdrop-blur-xl shadow-[0_20px_70px_rgba(0,0,0,.55)]">
         <button
           onClick={onRandomScene}
           className={btnBase}
@@ -118,25 +118,29 @@ function CanvasActionBar({
   );
 }
 
-export default function Canvas({
-  scene,
-  board,
-  selectedId,
-  setSelectedId,
-  sensors,
-  onDragStart,
-  onDragMove,
-  onDragEnd,
-  onUpdateItem,
+const Canvas = forwardRef(function Canvas(
+  {
+    scene,
+    board,
+    selectedId,
+    setSelectedId,
+    sensors,
+    onDragStart,
+    onDragMove,
+    onDragEnd,
+    onUpdateItem,
 
-  canExtract,
-  onExtractPalette,
-  onDeleteSelected,
-  onDuplicateSelected,
-  onBringToFront,
-  onSendToBack, // ✅ NEW
-  onRandomScene,
-}) {
+    canExtract,
+    onExtractPalette,
+    onDeleteSelected,
+    onDuplicateSelected,
+    onBringToFront,
+    onSendToBack,
+    onRandomScene,
+    isExporting = false,
+  },
+  ref,
+) {
   const hasSelection = Boolean(selectedId);
 
   const sortedItems = useMemo(() => {
@@ -145,7 +149,6 @@ export default function Canvas({
 
   const handleBackgroundPointerDown = useCallback(
     (e) => {
-      // On ne deselect QUE si on clique vraiment le fond du canvas
       if (e.target === e.currentTarget) setSelectedId(null);
     },
     [setSelectedId],
@@ -153,19 +156,21 @@ export default function Canvas({
 
   return (
     <section className="relative z-10 min-w-0">
-      <div className={ui.canvasShell}>
+      <div ref={ref} className={ui.canvasShell}>
         <MemphisBackdrop scene={scene} />
 
-        <CanvasActionBar
-          hasSelection={hasSelection}
-          canExtract={canExtract}
-          onRandomScene={onRandomScene}
-          onDuplicateSelected={onDuplicateSelected}
-          onBringToFront={onBringToFront}
-          onSendToBack={onSendToBack}
-          onDeleteSelected={onDeleteSelected}
-          onExtractPalette={onExtractPalette}
-        />
+        {!isExporting && (
+          <CanvasActionBar
+            hasSelection={hasSelection}
+            canExtract={canExtract}
+            onRandomScene={onRandomScene}
+            onDuplicateSelected={onDuplicateSelected}
+            onBringToFront={onBringToFront}
+            onSendToBack={onSendToBack}
+            onDeleteSelected={onDeleteSelected}
+            onExtractPalette={onExtractPalette}
+          />
+        )}
 
         <DndContext
           sensors={sensors}
@@ -174,7 +179,7 @@ export default function Canvas({
           onDragEnd={onDragEnd}
         >
           <div
-            className="relative z-10 h-[calc(100dvh-140px)] w-full"
+            className="relative z-10 h-[calc(100dvh-140px)] w-full overflow-hidden"
             onPointerDown={handleBackgroundPointerDown}
           >
             {sortedItems.map((item) => (
@@ -184,6 +189,7 @@ export default function Canvas({
                 isSelected={item.id === selectedId}
                 onSelect={() => setSelectedId(item.id)}
                 onUpdateItem={onUpdateItem}
+                isExporting={isExporting}
               />
             ))}
           </div>
@@ -193,4 +199,6 @@ export default function Canvas({
       </div>
     </section>
   );
-}
+});
+
+export default Canvas;

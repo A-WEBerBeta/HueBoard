@@ -16,11 +16,11 @@ export const ui = {
     "bg-black/30 backdrop-blur-xl " +
     "border-b border-white/10",
   headerInner:
-    "mx-auto flex h-16 w-full max-w-none items-center justify-between px-6",
+    "mx-auto flex h-16 w-full max-w-none items-center justify-between gap-3 px-3 lg:px-4 xl:px-6",
 
   main:
-    "mx-auto grid w-full max-w-none gap-5 px-6 py-5 " +
-    "grid-cols-[320px_1fr_320px] items-start",
+    "mx-auto grid w-full max-w-none gap-4 px-3 py-4 " +
+    "grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)_320px] items-start",
 
   // ===== Brand =====
   brandMark:

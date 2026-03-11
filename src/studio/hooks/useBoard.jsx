@@ -25,7 +25,7 @@ function randomHex() {
   return n.toString(16).padStart(6, "0");
 }
 
-// ✅ board vient de useBoards, updateBoard = (fn(board)=>nextBoard) ou patch
+// board vient de useBoards, updateBoard = (fn(board)=>nextBoard) ou patch
 export function useBoard(board, updateBoard) {
   const [selectedId, setSelectedId] = useState(null);
 
@@ -34,11 +34,8 @@ export function useBoard(board, updateBoard) {
 
   const lastDeltaRef = useRef({ x: 0, y: 0 });
 
-  const items = board?.items ?? [];
-
-  const selectedItem = useMemo(() => {
-    return items.find((it) => it.id === selectedId) ?? null;
-  }, [items, selectedId]);
+  const items = useMemo(() => board?.items ?? [], [board?.items]);
+  const selectedItem = items.find((it) => it.id === selectedId) ?? null;
 
   // --- core patch ---
   function patchItems(fn) {
@@ -129,7 +126,7 @@ export function useBoard(board, updateBoard) {
       x: 120,
       y: 120,
       w: 440,
-      h: 230,
+      h: 250,
       z: nextZ(items),
       rotation: 0,
       family: font.family,
@@ -193,7 +190,7 @@ export function useBoard(board, updateBoard) {
         x: 120,
         y: 120,
         w: 520,
-        h: 190,
+        h: 220,
         z: nextZ(items),
         rotation: 0,
         name: `${mode} • #${seed.toUpperCase()}`,
@@ -235,7 +232,7 @@ export function useBoard(board, updateBoard) {
         x: imgItem.x + 40,
         y: imgItem.y + imgItem.h + 20,
         w: 520,
-        h: 190,
+        h: 220,
         z: nextZ(items),
         rotation: 0,
         name: `From image • ${imgItem.source || "photo"}`,

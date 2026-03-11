@@ -16,49 +16,53 @@ export default function BoardItemView({
   isSelected,
   onSelect,
   onUpdateItem,
+  isExporting = false,
 }) {
   const isShape = item.type === "shape";
 
   const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
     id: item.id,
+    disabled: false,
   });
 
   const rotation = Number(item.rotation || 0);
 
-  // OUTER: must be overflow-visible so rotate handle (top -9) isn't clipped
   const outerClassName = useMemo(() => {
-    const base = "absolute select-none overflow-visible";
-    const state = isSelected
-      ? "z-50" // selection should feel on top visually
-      : "";
-    return [base, state].join(" ");
+    return [
+      "absolute select-none overflow-visible",
+      isSelected ? "z-50" : "",
+    ].join(" ");
   }, [isSelected]);
 
-  // INNER: clips content + gets rings/shadows
   const innerClassName = useMemo(() => {
-    if (isShape) return "h-full w-full rounded-3xl";
+    if (isShape) {
+      return "relative h-full w-full rounded-3xl";
+    }
 
-    const surface =
-      "h-full w-full rounded-3xl overflow-hidden p-3 " +
-      "backdrop-blur-xl bg-white/10 ring-1 ring-white/12 " +
-      "shadow-[0_18px_60px_rgba(0,0,0,.45)]";
+    const surface = isExporting
+      ? "h-full w-full rounded-3xl overflow-hidden px-3 pb-3 pt-12 bg-[#161821] ring-1 ring-white/8 shadow-[0_18px_40px_rgba(0,0,0,.35)]"
+      : "h-full w-full rounded-3xl overflow-hidden px-3 pb-3 pt-12 backdrop-blur-xl bg-white/10 ring-1 ring-white/12 shadow-[0_18px_60px_rgba(0,0,0,.45)]";
 
-    const state = isSelected
-      ? "ring-2 ring-white/35 shadow-[0_26px_90px_rgba(0,0,0,.65)]"
-      : "hover:ring-white/18 hover:shadow-[0_22px_70px_rgba(0,0,0,.55)]";
+    const state = isExporting
+      ? ""
+      : isSelected
+        ? "ring-2 ring-white/35 shadow-[0_26px_90px_rgba(0,0,0,.65)]"
+        : "hover:ring-white/18 hover:shadow-[0_22px_70px_rgba(0,0,0,.55)]";
 
     return ["transition-shadow", surface, state].join(" ");
-  }, [isShape, isSelected]);
+  }, [isShape, isSelected, isExporting]);
 
   const style = useMemo(() => {
     const opacity = typeof item.opacity === "number" ? item.opacity : 1;
+    const rawWidth = Number(item.w) || 320;
+    const maxWidth = Math.min(rawWidth, window.innerWidth - 120);
 
     return {
       left: Number(item.x) || 0,
       top: Number(item.y) || 0,
-      width: Number(item.w) || 320,
+      width: maxWidth,
       height: Number(item.h) || 200,
-      zIndex: item.z ?? 10, // keep items above backdrop layer
+      zIndex: item.z ?? 10,
       opacity: isDragging ? 0.92 : opacity,
       cursor: "default",
       touchAction: "none",
@@ -104,6 +108,7 @@ export default function BoardItemView({
           next.w = start.w - dx;
           next.x = start.x + dx;
         }
+
         if (corner.includes("n")) {
           next.h = start.h - dy;
           next.y = start.y + dy;
@@ -169,17 +174,27 @@ export default function BoardItemView({
         onSelect?.();
       }}
       data-rot-box
+      {...(isShape ? listeners : {})}
+      {...(isShape ? attributes : {})}
     >
-      <div className={innerClassName}>
-        {/* Drag handle */}
+      {!isExporting && !isShape && (
         <div
           {...listeners}
           {...attributes}
-          className="mb-3 h-3 w-16 cursor-grab rounded-full bg-linear-to-r from-fuchsia-500 via-sky-400 to-lime-300 active:cursor-grabbing"
+          className="absolute left-1/2 top-2 z-20 -translate-x-1/2 inline-flex h-6 w-10 cursor-grab items-center justify-center rounded-xl bg-white/8 ring-1 ring-white/10 backdrop-blur active:cursor-grabbing"
           onMouseDown={(e) => e.stopPropagation()}
           title="Drag"
-        />
+        >
+          <div className="grid grid-cols-2 gap-0.75">
+            <span className="h-1 w-1 rounded-full bg-white/45" />
+            <span className="h-1 w-1 rounded-full bg-white/45" />
+            <span className="h-1 w-1 rounded-full bg-white/45" />
+            <span className="h-1 w-1 rounded-full bg-white/45" />
+          </div>
+        </div>
+      )}
 
+      <div className={innerClassName}>
         {item.type === "note" ? (
           <NoteCard
             item={item}
@@ -196,26 +211,25 @@ export default function BoardItemView({
         ) : null}
       </div>
 
-      {/* Handles (outside the inner shell => not clipped) */}
-      {isSelected && (
+      {isSelected && !isExporting && (
         <>
           <button
             type="button"
             onPointerDown={startRotate}
-            className="absolute -top-9 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-white/10 ring-1 ring-white/20 backdrop-blur flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,.45)]"
+            className="absolute -top-9 left-1/2 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full bg-white/10 backdrop-blur ring-1 ring-white/20 shadow-[0_10px_30px_rgba(0,0,0,.45)]"
             title="Rotate"
           >
-            <span className="text-white/80 text-sm">↻</span>
+            <span className="text-sm text-white/80">↻</span>
           </button>
 
           <div
             onPointerDown={(e) => startResize(e, "nw")}
-            className="absolute -top-2 -left-2 h-4 w-4 rounded bg-white/70 ring-1 ring-black/20 cursor-nwse-resize"
+            className="absolute -left-2 -top-2 h-4 w-4 rounded bg-white/70 ring-1 ring-black/20 cursor-nwse-resize"
             title="Resize"
           />
           <div
             onPointerDown={(e) => startResize(e, "ne")}
-            className="absolute -top-2 -right-2 h-4 w-4 rounded bg-white/70 ring-1 ring-black/20 cursor-nesw-resize"
+            className="absolute -right-2 -top-2 h-4 w-4 rounded bg-white/70 ring-1 ring-black/20 cursor-nesw-resize"
             title="Resize"
           />
           <div

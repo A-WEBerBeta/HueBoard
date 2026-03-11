@@ -47,7 +47,12 @@ export default function Sidebar({
 
   return (
     <aside className="relative z-30 min-w-0">
-      <div className={cx(ui.panel, "p-4 w-[320px] max-w-[320px]")}>
+      <div
+        className={cx(
+          ui.panel,
+          "p-4 w-full lg:w-70 xl:w-[320px] max-w-full xl:max-w-[320px]",
+        )}
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -92,7 +97,7 @@ export default function Sidebar({
         </div>
 
         {/* Content */}
-        <div className="mt-4 space-y-4">
+        <div className="mt-5 space-y-5">
           {safePanel === "tools" && (
             <>
               <SectionTitle>CORE ACTIONS</SectionTitle>
@@ -272,13 +277,18 @@ function ActionRow({ icon, label, hint, onClick, accent }) {
       className={cx(
         "w-full rounded-2xl p-3 text-left ring-1 transition",
         "flex items-center gap-3",
-        accent
-          ? "bg-white/14 ring-white/20 shadow-[0_12px_30px_rgba(0,0,0,.35)] hover:bg-white/16"
-          : "bg-white/8 ring-white/12 hover:bg-white/12",
+        "bg-white/8 ring-white/12 hover:bg-white/12",
       )}
       type="button"
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/12">
+      <div
+        className={cx(
+          "flex h-10 w-10 items-center justify-center rounded-xl ring-1",
+          accent
+            ? "bg-white/14 ring-white/20 text-white"
+            : "bg-white/10 ring-white/12 text-white",
+        )}
+      >
         {icon}
       </div>
 
@@ -287,15 +297,7 @@ function ActionRow({ icon, label, hint, onClick, accent }) {
         <div className="text-xs text-white/55">{hint}</div>
       </div>
 
-      <div
-        className={cx(
-          "flex h-8 w-8 items-center justify-center rounded-full ring-1",
-          accent
-            ? "ring-white/20 bg-[conic-gradient(from_210deg,#ff2db2,#00d9ff,#b7ff00,#ffcc00,#ff2db2)]"
-            : "bg-white/10 ring-white/12",
-        )}
-        aria-hidden="true"
-      >
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/12">
         <ChevronRight size={14} className="text-white/60" />
       </div>
     </button>
@@ -310,27 +312,29 @@ function SceneThumb({ scene, active, onClick }) {
     <button
       onClick={onClick}
       className={cx(
-        "overflow-hidden rounded-2xl text-left ring-1 transition",
+        "group overflow-hidden rounded-2xl text-left ring-1 transition-all duration-200",
         active
-          ? "bg-white/12 ring-white/30"
+          ? "bg-white/12 ring-white/30 shadow-[0_0_0_1px_rgba(255,255,255,.15)]"
           : "bg-white/6 ring-white/12 hover:bg-white/10 hover:ring-white/20",
       )}
       type="button"
       title={scene.name}
     >
       <div className="relative h-20 w-full overflow-hidden rounded-xl">
+        {/* IMAGE SCENE */}
         {scene.image && (
           <img
             src={scene.image}
             alt={scene.name}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.06]"
             loading="lazy"
           />
         )}
 
+        {/* DOTS SCENE */}
         {isDots && (
           <div
-            className="absolute inset-0 bg-[#0c0d12]"
+            className="absolute inset-0 bg-[#0c0d12] transition-transform duration-300 group-hover:scale-[1.06]"
             style={{
               backgroundImage:
                 "radial-gradient(rgba(255,255,255,0.25) 1px, transparent 1px)",
@@ -339,9 +343,10 @@ function SceneThumb({ scene, active, onClick }) {
           />
         )}
 
+        {/* GRID SCENE */}
         {isGrid && (
           <div
-            className="absolute inset-0 bg-[#0c0d12]"
+            className="absolute inset-0 bg-[#0c0d12] transition-transform duration-300 group-hover:scale-[1.06]"
             style={{
               backgroundImage: `
                 linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
@@ -351,6 +356,11 @@ function SceneThumb({ scene, active, onClick }) {
             }}
           />
         )}
+
+        {/* hover glow */}
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,.25),transparent_70%)]" />
+        </div>
       </div>
 
       <div className="px-2 py-2">
