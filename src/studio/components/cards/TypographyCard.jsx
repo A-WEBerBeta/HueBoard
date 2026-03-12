@@ -19,7 +19,7 @@ export default function TypographyCard({ item }) {
         </div>
 
         {/* accent chip */}
-        <div className="h-6 w-10 shrink-0 rounded-full bg-white/10 ring-1 ring-white/12" />
+        {/* <div className="h-6 w-10 shrink-0 rounded-full bg-white/10 ring-1 ring-white/12" /> */}
       </div>
 
       {/* Title sample */}
