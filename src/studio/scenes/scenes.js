@@ -1,9 +1,9 @@
-import scene1 from "../../assets/scenes/scene-1.jpg";
-import scene2 from "../../assets/scenes/scene-2.jpg";
-import scene3 from "../../assets/scenes/scene-3.jpg";
-import scene4 from "../../assets/scenes/scene-4.jpg";
-import scene5 from "../../assets/scenes/scene-5.jpg";
-import scene6 from "../../assets/scenes/scene-6.jpg";
+import scene1 from "../../assets/scenes/scene-1.webp";
+import scene2 from "../../assets/scenes/scene-2.webp";
+import scene3 from "../../assets/scenes/scene-3.webp";
+import scene4 from "../../assets/scenes/scene-4.webp";
+import scene5 from "../../assets/scenes/scene-5.webp";
+import scene6 from "../../assets/scenes/scene-6.webp";
 
 export const SCENES = [
   { id: "scene-1", name: "Memphis", image: scene1 },
